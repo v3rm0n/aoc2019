@@ -6,14 +6,15 @@ private typealias Wire = LinkedHashSet<Coordinates>
 private typealias Coordinates = Pair<Int, Int>
 
 class Advent3(
-    wires: List<Wire> =
+    wires: List<List<String>> =
         readFile("/advent3")
             .map { it.split(',') }
-            .map { mapWireToCoordinates(it) }
 ) : Advent {
 
-    private val first = wires[0]
-    private val second = wires[1]
+    private val mappedWires = wires.map { mapWireToCoordinates(it) }
+
+    private val first = mappedWires[0]
+    private val second = mappedWires[1]
 
     private val intersections = first.intersect(second).drop(1)
 

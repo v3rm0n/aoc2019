@@ -2,10 +2,13 @@ package advent
 
 class Advent2(
     private val intcodes: List<Int> = readFile("/advent2")
-        .flatMap { it.split(',').map { it.toInt() } }
+        .flatMap { it.split(',').map { it.toInt() } }.toMutableList().also {
+            it[1] = 12
+            it[2] = 2
+        }
 ) : Advent {
 
-    override fun firstTask() = calculate(intcodes.toMutableList(), 12, 2).toString()
+    override fun firstTask() = calculate(intcodes.toMutableList()).toString()
 
     override fun secondTask() = findNounAndVerb(intcodes.toMutableList()).toString()
 
@@ -18,7 +21,7 @@ class Advent2(
         return null
     }
 
-    private fun calculate(intcodes: MutableList<Int>, first: Int, second: Int): Int {
+    private fun calculate(intcodes: MutableList<Int>, first: Int = intcodes[1], second: Int = intcodes[2]): Int {
         intcodes[1] = first
         intcodes[2] = second
         var i = 0
