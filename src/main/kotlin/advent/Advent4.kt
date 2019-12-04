@@ -1,7 +1,7 @@
 package advent
 
-class Advent4 : Advent {
-    private val range = (347312..805915)
+class Advent4(private val range: IntRange = (347312..805915)) : Advent {
+
     override fun firstTask() = range.fold(0)
     { acc, it ->
         if (hasAdjacentDigits(it.toString()) && isIncreasing(

@@ -2,8 +2,7 @@ package advent
 
 import kotlin.math.floor
 
-class Advent1 : Advent {
-    private val lines = readFile("/advent1")
+class Advent1(private val lines: List<String> = readFile("/advent1")) : Advent {
 
     override fun firstTask() = getFuel(lines).toString()
 

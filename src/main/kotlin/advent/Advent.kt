@@ -6,7 +6,6 @@ import java.util.ServiceLoader
 interface Advent {
     fun firstTask(): String
     fun secondTask(): String
-    fun readFile(filename: String) = File(Advent::class.java.getResource(filename).toURI()).readLines()
 }
 
 fun main() {
@@ -19,3 +18,5 @@ fun main() {
     }
     println("************Goodbye!***********")
 }
+
+fun readFile(filename: String) = File(Advent::class.java.getResource(filename).toURI()).readLines()

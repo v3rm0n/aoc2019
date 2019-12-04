@@ -1,9 +1,9 @@
 package advent
 
-class Advent2 : Advent {
-    private val intcodes =
-        readFile("/advent2")
-            .flatMap { it.split(',').map { it.toInt() } }
+class Advent2(
+    private val intcodes: List<Int> = readFile("/advent2")
+        .flatMap { it.split(',').map { it.toInt() } }
+) : Advent {
 
     override fun firstTask() = calculate(intcodes.toMutableList(), 12, 2).toString()
 
