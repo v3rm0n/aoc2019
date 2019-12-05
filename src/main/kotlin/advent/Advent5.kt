@@ -25,14 +25,14 @@ class Advent5(
                 1 -> {
                     val param1 = paramValue(opcode, i, 1)
                     val param2 = paramValue(opcode, i, 2)
-                    debugPrint("Setting value on index ${intcodes[i + 3]} to ${param1}+${param2}")
+                    debugPrint("Setting value on index ${intcodes[i + 3]} to $param1+$param2")
                     intcodes[intcodes[i + 3]] = param1 + param2
                     i += 4
                 }
                 2 -> {
                     val param1 = paramValue(opcode, i, 1)
                     val param2 = paramValue(opcode, i, 2)
-                    debugPrint("Setting value on index ${intcodes[i + 3]} to ${param1}*${param2}")
+                    debugPrint("Setting value on index ${intcodes[i + 3]} to $param1*$param2")
                     intcodes[intcodes[i + 3]] = param1 * param2
                     i += 4
                 }
@@ -50,7 +50,7 @@ class Advent5(
                 5 -> {
                     val param1 = paramValue(opcode, i, 1)
                     val param2 = paramValue(opcode, i, 2)
-                    debugPrint("Jumping to ${param2}? ${param1 != 0}")
+                    debugPrint("Jumping to $param2? ${param1 != 0}")
                     if (param1 != 0) {
                         i = param2
                     } else {
@@ -70,14 +70,14 @@ class Advent5(
                 7 -> {
                     val param1 = paramValue(opcode, i, 1)
                     val param2 = paramValue(opcode, i, 2)
-                    debugPrint("$param1 < ${param2}? ${param1 < param2}")
+                    debugPrint("$param1 < $param2? ${param1 < param2}")
                     intcodes[intcodes[i + 3]] = if (param1 < param2) 1 else 0
                     i += 4
                 }
                 8 -> {
                     val param1 = paramValue(opcode, i, 1)
                     val param2 = paramValue(opcode, i, 2)
-                    debugPrint("$param1 == ${param2}? ${param1 == param2}")
+                    debugPrint("$param1 == $param2? ${param1 == param2}")
                     intcodes[intcodes[i + 3]] = if (param1 == param2) 1 else 0
                     i += 4
                 }
