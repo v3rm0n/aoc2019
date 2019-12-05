@@ -5,6 +5,13 @@ import kotlin.test.assertEquals
 
 class Advent5Test {
     @Test
+    fun testWithDefaultValue() {
+        val advent = Advent5()
+        assertEquals(listOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 9938601), advent.firstTask())
+        assertEquals(listOf(4283952), advent.secondTask())
+    }
+
+    @Test
     fun testWithValue() {
         val advent = Advent5(listOf(1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50), 0)
         assertEquals(listOf(3500), advent.firstTask())

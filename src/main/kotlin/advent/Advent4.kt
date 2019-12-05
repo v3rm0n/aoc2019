@@ -2,27 +2,14 @@ package advent
 
 class Advent4(private val range: IntRange = (347312..805915)) : Advent {
 
-    override fun firstTask() = range.fold(0)
-    { acc, it ->
-        if (hasAdjacentDigits(it.toString()) && isIncreasing(
-                it.toString()
-            )
-        ) acc + 1 else acc
-    }
+    override fun firstTask() = range.count { hasAdjacentDigits(it.toString()) && isIncreasing(it.toString()) }
 
-    override fun secondTask() = range.fold(0)
-    { acc, it ->
-        if (isIncreasing(it.toString()) && hasLengthOfAdjacentDigitsTwo(
-                it.toString()
-            )
-        ) acc + 1 else acc
-    }
+    override fun secondTask() =
+        range.count { isIncreasing(it.toString()) && hasLengthOfAdjacentDigitsTwo(it.toString()) }
 
-    private fun isIncreasing(s: String) =
-        s.foldIndexed(true) { i, result, c -> result && (i == 0 || c.toInt() >= s[i - 1].toInt()) }
+    private fun isIncreasing(s: String) = s.zipWithNext().all { (prev, next) -> prev.toInt() <= next.toInt() }
 
-    private fun hasAdjacentDigits(s: String) =
-        s.foldIndexed(false) { i, result, c -> result || (i == 0 || c == s[i - 1]) }
+    private fun hasAdjacentDigits(s: String) = s.zipWithNext().any { (prev, next) -> prev == next }
 
     private fun hasLengthOfAdjacentDigitsTwo(s: String) =
         s.foldIndexed(0) { i, result, c ->

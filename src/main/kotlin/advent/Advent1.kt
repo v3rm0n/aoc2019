@@ -1,27 +1,17 @@
 package advent
 
-import kotlin.math.floor
+class Advent1(private val lines: List<Int> = readFile("/advent1").map { it.toInt() }) : Advent {
 
-class Advent1(private val lines: List<String> = readFile("/advent1")) : Advent {
+    override fun firstTask() = lines.map { it / 3 - 2 }.sum()
 
-    override fun firstTask() = getFuel(lines)
+    override fun secondTask() = lines.map { getAllFuelForCargo(it) }.sum()
 
-    override fun secondTask() = getCumulativeFuel(lines)
-
-    private fun getFuel(lines: List<String>): Int =
-        lines.fold(0.0) { acc, s -> acc + getFuelForCargo(s.toDouble()) }.toInt()
-
-    private fun getFuelForCargo(cargo: Double): Double = floor(cargo / 3) - 2
-
-    private fun getCumulativeFuel(lines: List<String>): Int =
-        lines.fold(0.0) { acc, s -> acc + getAllFuelForCargo(s.toDouble()) }.toInt()
-
-    private fun getAllFuelForCargo(cargo: Double): Double {
-        val fuel = getFuelForCargo(cargo)
+    private tailrec fun getAllFuelForCargo(cargo: Int, acc: Int = 0): Int {
+        val fuel = cargo / 3 - 2
         if (fuel <= 0.0) {
-            return 0.0
+            return acc
         }
-        return fuel + getAllFuelForCargo(fuel)
+        return getAllFuelForCargo(fuel, acc + fuel)
     }
 }
 
