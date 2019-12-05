@@ -4,9 +4,9 @@ import kotlin.math.floor
 
 class Advent1(private val lines: List<String> = readFile("/advent1")) : Advent {
 
-    override fun firstTask() = getFuel(lines).toString()
+    override fun firstTask() = getFuel(lines)
 
-    override fun secondTask() = getCumulativeFuel(lines).toString()
+    override fun secondTask() = getCumulativeFuel(lines)
 
     private fun getFuel(lines: List<String>): Int =
         lines.fold(0.0) { acc, s -> acc + getFuelForCargo(s.toDouble()) }.toInt()

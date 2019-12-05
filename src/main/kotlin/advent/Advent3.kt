@@ -18,9 +18,9 @@ class Advent3(
 
     private val intersections = first.intersect(second).drop(1)
 
-    override fun firstTask() = intersections.map(::distance).min().toString()
+    override fun firstTask() = intersections.map(::distance).min() ?: "Not found!"
 
-    override fun secondTask() = intersections.map { steps(first, second, it) }.min().toString()
+    override fun secondTask() = intersections.map { steps(first, second, it) }.min() ?: "Not found!"
 
     private fun distance(coordinates: Coordinates) = abs(0 - coordinates.first) + abs(0 - coordinates.second)
 

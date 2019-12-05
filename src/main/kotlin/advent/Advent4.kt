@@ -8,7 +8,7 @@ class Advent4(private val range: IntRange = (347312..805915)) : Advent {
                 it.toString()
             )
         ) acc + 1 else acc
-    }.toString()
+    }
 
     override fun secondTask() = range.fold(0)
     { acc, it ->
@@ -16,7 +16,7 @@ class Advent4(private val range: IntRange = (347312..805915)) : Advent {
                 it.toString()
             )
         ) acc + 1 else acc
-    }.toString()
+    }
 
     private fun isIncreasing(s: String) =
         s.foldIndexed(true) { i, result, c -> result && (i == 0 || c.toInt() >= s[i - 1].toInt()) }

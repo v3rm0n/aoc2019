@@ -4,9 +4,11 @@ import java.io.File
 import java.util.ServiceLoader
 
 interface Advent {
-    fun firstTask(): String
-    fun secondTask(): String
+    fun firstTask(): Any
+    fun secondTask(): Any
 }
+
+private val debug = System.getProperty("debug", "false")!!.toBoolean()
 
 fun main() {
     println("******Advent of code 2019******")
@@ -18,5 +20,7 @@ fun main() {
     }
     println("************Goodbye!***********")
 }
+
+fun debugPrint(message: Any?) = if (debug) println(message) else Unit
 
 fun readFile(filename: String) = File(Advent::class.java.getResource(filename).toURI()).readLines()

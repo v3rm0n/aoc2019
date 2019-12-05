@@ -12,7 +12,7 @@ class Advent3Test {
                 listOf("U62", "R66", "U55", "R34", "D71", "R55", "D58", "R83")
             )
         )
-        assertEquals("159", advent3.firstTask())
-        assertEquals("610", advent3.secondTask())
+        assertEquals(159, advent3.firstTask())
+        assertEquals(610, advent3.secondTask())
     }
 }

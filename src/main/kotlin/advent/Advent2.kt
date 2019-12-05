@@ -8,9 +8,9 @@ class Advent2(
         }
 ) : Advent {
 
-    override fun firstTask() = calculate(intcodes.toMutableList()).toString()
+    override fun firstTask() = calculate(intcodes.toMutableList())
 
-    override fun secondTask() = findNounAndVerb(intcodes.toMutableList()).toString()
+    override fun secondTask() = findNounAndVerb(intcodes.toMutableList()) ?: "Not found!"
 
     private fun findNounAndVerb(intcodes: MutableList<Int>): Int? {
         for (i in (0..100)) {
