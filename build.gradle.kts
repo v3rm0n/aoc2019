@@ -32,7 +32,7 @@ tasks {
                         "TESTCLASS" to removeImportsAndPackage(testContent)
                     )
                 }
-                into("$buildDir/html")
+                into("docs")
                 rename { "${name.toLowerCase()}.html" }
             }
         }
