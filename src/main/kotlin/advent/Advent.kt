@@ -4,23 +4,23 @@ import java.io.File
 import java.util.ServiceLoader
 
 interface Advent {
-    fun firstTask(): Any
-    fun secondTask(): Any
+    fun firstTask(input: List<String>): Any
+    fun secondTask(input: List<String>): Any
 }
-
-private val debug = System.getProperty("debug", "false")!!.toBoolean()
 
 fun main() {
     println("******Advent of code 2019******")
     ServiceLoader.load(Advent::class.java).forEach {
-        println(it.javaClass.simpleName)
-        println("First task: ${it.firstTask()}")
-        println("Second task: ${it.secondTask()}")
+        val advent = it.javaClass.simpleName.toLowerCase()
+        println(advent)
+        val input = readFile("/$advent")
+        println("First task: ${it.firstTask(input)}")
+        println("Second task: ${it.secondTask(input)}")
         println("*******************************")
     }
     println("************Goodbye!***********")
 }
 
-fun debugPrint(message: Any?) = if (debug) println(message) else Unit
+fun debugPrint(message: Any?) = System.getProperty("debug")?.let { if (it.toBoolean()) println(message) }
 
 fun readFile(filename: String) = File(Advent::class.java.getResource(filename).toURI()).readLines()

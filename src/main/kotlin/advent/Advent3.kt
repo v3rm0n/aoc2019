@@ -2,22 +2,22 @@ package advent
 
 import kotlin.math.abs
 
-class Advent3(
-    wires: List<List<String>> =
-        readFile("/advent3")
-            .map { it.split(',') }
-) : Advent {
+class Advent3 : Advent {
 
-    private val mappedWires = wires.map { mapWireToCoordinates(it) }
+    override fun firstTask(input: List<String>) =
+        intersections(wires(input)).map { (x, y) -> abs(0 - x) + abs(0 - y) }.min() ?: "Not found!"
 
-    private val first = mappedWires[0]
-    private val second = mappedWires[1]
+    override fun secondTask(input: List<String>) = wires(input).let { (first, second) ->
+        intersections(first to second).map { first.indexOf(it) + second.indexOf(it) }.min() ?: "Not found!"
+    }
 
-    private val intersections = first.intersect(second).drop(1)
+    private fun intersections(wires: Pair<List<Pair<Int, Int>>, List<Pair<Int, Int>>>) =
+        wires.first.intersect(wires.second).drop(1)
 
-    override fun firstTask() = intersections.map { (x, y) -> abs(0 - x) + abs(0 - y) }.min() ?: "Not found!"
-
-    override fun secondTask() = intersections.map { first.indexOf(it) + second.indexOf(it) }.min() ?: "Not found!"
+    private fun wires(input: List<String>): Pair<List<Pair<Int, Int>>, List<Pair<Int, Int>>> {
+        val (first, second) = input.map { mapWireToCoordinates(it.split(',')) }
+        return first to second
+    }
 
     private fun mapWireToCoordinates(wire: List<String>): List<Pair<Int, Int>> {
         return wire.fold(listOf(0 to 0)) { result, i ->

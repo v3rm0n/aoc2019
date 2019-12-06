@@ -1,21 +1,24 @@
 package advent
 
 class Advent5(
-    private val inputCodes: List<Int> = readFile("/advent5")
-        .flatMap { it.split(',').map { it.toInt() } },
     private val firstInput: Int = 1,
     private val secondInput: Int = 5
 ) : Advent {
 
-    override fun firstTask() = calculate(inputCodes.toMutableList(), firstInput)
+    override fun firstTask(input: List<String>) =
+        calculate(input.flatMap { it.split(',').map(String::toInt) }.toMutableList(), firstInput)
 
-    override fun secondTask() = calculate(inputCodes.toMutableList(), secondInput)
+    override fun secondTask(input: List<String>) =
+        calculate(input.flatMap { it.split(',').map(String::toInt) }.toMutableList(), secondInput)
+
+    private fun isImmediate(opcode: String, param: Int) = opcode.reversed().drop(1)[param].toString().toInt() == 1
 
     private fun calculate(intcodes: MutableList<Int>, input: Int): List<Int> {
-        fun isImmediate(opcode: String, param: Int) = opcode.reversed().drop(1)[param].toString().toInt() == 1
+        debugPrint("Initial intcodes: $intcodes")
+
         fun paramValue(opcode: String, i: Int, param: Int) =
             if (isImmediate(opcode, param)) intcodes[i + param] else intcodes[intcodes[i + param]]
-        debugPrint("Initial intcodes: $intcodes")
+
         var i = 0
         val output = mutableListOf<Int>()
         loop@ while (i < intcodes.size) {

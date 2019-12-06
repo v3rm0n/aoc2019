@@ -1,11 +1,17 @@
 package advent
 
-class Advent4(private val range: IntRange = (347312..805915)) : Advent {
+class Advent4 : Advent {
 
-    override fun firstTask() = range.count { hasAdjacentDigits(it.toString()) && isIncreasing(it.toString()) }
+    private fun range(input: List<String>): IntRange = input.first().let {
+        val (start, end) = it.split("..").map(String::toInt)
+        return start..end
+    }
 
-    override fun secondTask() =
-        range.count { isIncreasing(it.toString()) && hasLengthOfAdjacentDigitsTwo(it.toString()) }
+    override fun firstTask(input: List<String>) =
+        range(input).count { hasAdjacentDigits(it.toString()) && isIncreasing(it.toString()) }
+
+    override fun secondTask(input: List<String>) =
+        range(input).count { isIncreasing(it.toString()) && hasLengthOfAdjacentDigitsTwo(it.toString()) }
 
     private fun isIncreasing(s: String) = s.zipWithNext().all { (prev, next) -> prev.toInt() <= next.toInt() }
 
