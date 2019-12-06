@@ -33,7 +33,7 @@ tasks {
                     )
                 }
                 into("$buildDir/html")
-                rename { "$name.html" }
+                rename { "${name.toLowerCase()}.html" }
             }
         }
     }
