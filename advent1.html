@@ -1,0 +1,60 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Advent of Code 2019</title>
+    <meta name="description" content="Advent of Code 2019">
+    <meta name="author" content="Maido Käära">
+</head>
+<body>
+<code data-target-platform="junit">
+    import org.junit.Test
+    import kotlin.test.assertEquals
+
+    interface Advent {
+        fun firstTask(input: List&lt;String&gt;): Any
+        fun secondTask(input: List&lt;String&gt;): Any
+    }
+
+    
+class Advent1 : Advent {
+
+    override fun firstTask(input: List&lt;String&gt;) = input.map(String::toInt).map { it / 3 - 2 }.sum()
+
+    override fun secondTask(input: List&lt;String&gt;) = input.map(String::toInt).map { getAllFuelForCargo(it) }.sum()
+
+    private tailrec fun getAllFuelForCargo(cargo: Int, acc: Int = 0): Int {
+        val fuel = cargo / 3 - 2
+        if (fuel &lt;= 0.0) {
+            return acc
+        }
+        return getAllFuelForCargo(fuel, acc + fuel)
+    }
+}
+
+
+
+    
+
+class Advent1Test {
+    @Test
+    fun testWithValue() {
+        val advent1 = Advent1()
+        assertEquals(33583, advent1.firstTask(listOf("100756")))
+        assertEquals(50346, advent1.secondTask(listOf("100756")))
+    }
+
+    @Test
+    fun testWithOtherValue() {
+        val advent1 = Advent1()
+        assertEquals(654, advent1.firstTask(listOf("1969")))
+        assertEquals(966, advent1.secondTask(listOf("1969")))
+    }
+}
+
+</code>
+<script src="https://unpkg.com/kotlin-playground@1" data-selector="code"></script>
+</body>
+</html>

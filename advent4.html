@@ -1,0 +1,70 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Advent of Code 2019</title>
+    <meta name="description" content="Advent of Code 2019">
+    <meta name="author" content="Maido Käära">
+</head>
+<body>
+<code data-target-platform="junit">
+    import org.junit.Test
+    import kotlin.test.assertEquals
+
+    interface Advent {
+        fun firstTask(input: List&lt;String&gt;): Any
+        fun secondTask(input: List&lt;String&gt;): Any
+    }
+
+    
+class Advent4 : Advent {
+
+    private fun range(input: List&lt;String&gt;): IntRange = input.first().let {
+        val (start, end) = it.split("..").map(String::toInt)
+        return start..end
+    }
+
+    override fun firstTask(input: List&lt;String&gt;) =
+        range(input).count { hasAdjacentDigits(it.toString()) && isIncreasing(it.toString()) }
+
+    override fun secondTask(input: List&lt;String&gt;) =
+        range(input).count { isIncreasing(it.toString()) && hasLengthOfAdjacentDigitsTwo(it.toString()) }
+
+    private fun isIncreasing(s: String) = s.zipWithNext().all { (prev, next) -&gt; prev.toInt() &lt;= next.toInt() }
+
+    private fun hasAdjacentDigits(s: String) = s.zipWithNext().any { (prev, next) -&gt; prev == next }
+
+    private fun hasLengthOfAdjacentDigitsTwo(s: String) =
+        s.foldIndexed(0) { i, result, c -&gt;
+            when {
+                i == 0 -&gt; 1
+                c == s[i - 1] -&gt; result + 1
+                result == 2 -&gt; return true
+                else -&gt; 1
+            }
+        } == 2
+}
+
+
+
+
+
+
+
+    
+
+class Advent4Test {
+    @Test
+    fun testWithDefaultValue() {
+        val advent = Advent4()
+        assertEquals(594, advent.firstTask(listOf("347312..805915")))
+        assertEquals(364, advent.secondTask(listOf("347312..805915")))
+    }
+}
+
+</code>
+<script src="https://unpkg.com/kotlin-playground@1" data-selector="code"></script>
+</body>
+</html>

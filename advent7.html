@@ -1,0 +1,42 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Advent of Code 2019</title>
+    <meta name="description" content="Advent of Code 2019">
+    <meta name="author" content="Maido Käära">
+</head>
+<body>
+<code data-target-platform="junit">
+    import org.junit.Test
+    import kotlin.test.assertEquals
+
+    interface Advent {
+        fun firstTask(input: List&lt;String&gt;): Any
+        fun secondTask(input: List&lt;String&gt;): Any
+    }
+
+    
+class Advent7() : Advent {
+    override fun firstTask(input: List&lt;String&gt;) = 0
+    override fun secondTask(input: List&lt;String&gt;) = 0
+}
+
+
+    
+
+class Advent7Test {
+    @Test
+    fun testWithDefaultValue() {
+        val advent = Advent7()
+        assertEquals(0, advent.firstTask(listOf()))
+        assertEquals(0, advent.secondTask(listOf()))
+    }
+}
+
+</code>
+<script src="https://unpkg.com/kotlin-playground@1" data-selector="code"></script>
+</body>
+</html>

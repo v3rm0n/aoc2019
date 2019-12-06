@@ -1,0 +1,221 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Advent of Code 2019</title>
+    <meta name="description" content="Advent of Code 2019">
+    <meta name="author" content="Maido Käära">
+</head>
+<body>
+<code data-target-platform="junit">
+    import org.junit.Test
+    import kotlin.test.assertEquals
+
+    interface Advent {
+        fun firstTask(input: List&lt;String&gt;): Any
+        fun secondTask(input: List&lt;String&gt;): Any
+    }
+
+    
+class Advent5(
+    private val firstInput: Int = 1,
+    private val secondInput: Int = 5
+) : Advent {
+
+    override fun firstTask(input: List&lt;String&gt;) =
+        calculate(input.flatMap { it.split(',').map(String::toInt) }.toMutableList(), firstInput)
+
+    override fun secondTask(input: List&lt;String&gt;) =
+        calculate(input.flatMap { it.split(',').map(String::toInt) }.toMutableList(), secondInput)
+
+    private fun isImmediate(opcode: String, param: Int) = opcode.reversed().drop(1)[param].toString().toInt() == 1
+
+    private fun calculate(intcodes: MutableList&lt;Int&gt;, input: Int): List&lt;Int&gt; {
+        debugPrint("Initial intcodes: $intcodes")
+
+        fun paramValue(opcode: String, i: Int, param: Int) =
+            if (isImmediate(opcode, param)) intcodes[i + param] else intcodes[intcodes[i + param]]
+
+        var i = 0
+        val output = mutableListOf&lt;Int&gt;()
+        loop@ while (i &lt; intcodes.size) {
+            val opcode = intcodes[i].toString().padStart(5, '0')
+            debugPrint("Opcode: $opcode")
+            when (opcode.drop(3).toInt()) {
+                1 -&gt; {
+                    val param1 = paramValue(opcode, i, 1)
+                    val param2 = paramValue(opcode, i, 2)
+                    debugPrint("Setting value on index ${intcodes[i + 3]} to $param1+$param2")
+                    intcodes[intcodes[i + 3]] = param1 + param2
+                    i += 4
+                }
+                2 -&gt; {
+                    val param1 = paramValue(opcode, i, 1)
+                    val param2 = paramValue(opcode, i, 2)
+                    debugPrint("Setting value on index ${intcodes[i + 3]} to $param1*$param2")
+                    intcodes[intcodes[i + 3]] = param1 * param2
+                    i += 4
+                }
+                3 -&gt; {
+                    debugPrint("Setting value on index ${intcodes[i + 1]} to $input")
+                    intcodes[intcodes[i + 1]] = input
+                    i += 2
+                }
+                4 -&gt; {
+                    val param1 = paramValue(opcode, i, 1)
+                    debugPrint("Outputting value $param1")
+                    output.add(param1)
+                    i += 2
+                }
+                5 -&gt; {
+                    val param1 = paramValue(opcode, i, 1)
+                    val param2 = paramValue(opcode, i, 2)
+                    debugPrint("Jumping to $param2? ${param1 != 0}")
+                    if (param1 != 0) {
+                        i = param2
+                    } else {
+                        i += 3
+                    }
+                }
+                6 -&gt; {
+                    val param1 = paramValue(opcode, i, 1)
+                    val param2 = paramValue(opcode, i, 2)
+                    debugPrint("Jumping to ${param2}? ${param1 == 0}")
+                    if (param1 == 0) {
+                        i = param2
+                    } else {
+                        i += 3
+                    }
+                }
+                7 -&gt; {
+                    val param1 = paramValue(opcode, i, 1)
+                    val param2 = paramValue(opcode, i, 2)
+                    debugPrint("$param1 &lt; $param2? ${param1 &lt; param2}")
+                    intcodes[intcodes[i + 3]] = if (param1 &lt; param2) 1 else 0
+                    i += 4
+                }
+                8 -&gt; {
+                    val param1 = paramValue(opcode, i, 1)
+                    val param2 = paramValue(opcode, i, 2)
+                    debugPrint("$param1 == $param2? ${param1 == param2}")
+                    intcodes[intcodes[i + 3]] = if (param1 == param2) 1 else 0
+                    i += 4
+                }
+                99 -&gt; break@loop
+            }
+            debugPrint("Intcodes: $intcodes")
+        }
+        debugPrint("Final intcodes: $intcodes")
+        if (output.isEmpty()) {
+            output.add(intcodes[0])
+        }
+        return output
+    }
+}
+
+
+    
+
+class Advent5Test {
+
+    @Test
+    fun testWithValue() {
+        val advent = Advent5(0)
+        assertEquals(listOf(3500), advent.firstTask(listOf("1,9,10,3,2,3,11,0,99,30,40,50")))
+    }
+
+    @Test
+    fun testOutputsInputValue() {
+        val advent = Advent5(10)
+        assertEquals(listOf(10), advent.firstTask(listOf("3,0,4,0,99")))
+    }
+
+    @Test
+    fun testParameterMode() {
+        val advent = Advent5(0)
+        assertEquals(listOf(1002), advent.firstTask(listOf("1002,4,3,4,33")))
+    }
+
+    @Test
+    fun testNegativeValues() {
+        val advent = Advent5(0)
+        assertEquals(listOf(1101), advent.firstTask(listOf("1101,100,-1,4,0")))
+    }
+
+    @Test
+    fun testEquals() {
+        val advent = Advent5(8)
+        assertEquals(listOf(1), advent.firstTask(listOf("3,9,8,9,10,9,4,9,99,-1,8")))
+    }
+
+    @Test
+    fun testLessThan() {
+        val advent = Advent5(7)
+        assertEquals(listOf(1), advent.firstTask(listOf("3,9,7,9,10,9,4,9,99,-1,8")))
+    }
+
+    @Test
+    fun testEqualsImmediate() {
+        val advent = Advent5(8)
+        assertEquals(listOf(1), advent.firstTask(listOf("3,3,1108,-1,8,3,4,3,99")))
+    }
+
+    @Test
+    fun testLessThanImmediate() {
+        val advent = Advent5(7)
+        assertEquals(listOf(1), advent.firstTask(listOf("3,3,1107,-1,8,3,4,3,99")))
+    }
+
+    @Test
+    fun testJumping() {
+        val advent = Advent5(10)
+        assertEquals(listOf(1), advent.firstTask(listOf("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9")))
+    }
+
+    @Test
+    fun testJumpingImmediate() {
+        val advent = Advent5(0)
+        assertEquals(listOf(0), advent.firstTask(listOf("3,3,1105,-1,9,1101,0,0,12,4,12,99,1")))
+    }
+
+    @Test
+    fun testLargerExample() {
+        assertEquals(
+            listOf(999),
+            Advent5(
+                7
+            ).firstTask(
+                listOf(
+                    """3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"""
+                )
+            )
+        )
+        assertEquals(
+            listOf(1000),
+            Advent5(
+                8
+            ).firstTask(
+                listOf(
+                    """3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"""
+                )
+            )
+        )
+        assertEquals(
+            listOf(1001),
+            Advent5(
+                10
+            ).firstTask(
+                listOf(
+                    """3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"""
+                )
+            )
+        )
+    }
+}
+
+</code>
+<script src="https://unpkg.com/kotlin-playground@1" data-selector="code"></script>
+</body>
+</html>
