@@ -172,61 +172,61 @@ class Advent5(
 class Advent5Test {
 
     @Test
-    fun testOutputsInputValue() {
+    fun `outputs input value`() {
         val advent = Advent5(10)
         assertEquals(listOf(10L), advent.firstTask(listOf("3,0,4,0,99")))
     }
 
     @Test
-    fun testParameterMode() {
+    fun `parameter mode functional`() {
         val advent = Advent5(null, null)
         assertEquals(emptyList(), advent.firstTask(listOf("1002,4,3,4,33")))
     }
 
     @Test
-    fun testNegativeValues() {
+    fun `negative values supported`() {
         val advent = Advent5(null, null)
         assertEquals(emptyList(), advent.firstTask(listOf("1101,100,-1,4,0")))
     }
 
     @Test
-    fun testEquals() {
+    fun `equals supported`() {
         val advent = Advent5(8)
         assertEquals(listOf(1L), advent.firstTask(listOf("3,9,8,9,10,9,4,9,99,-1,8")))
     }
 
     @Test
-    fun testLessThan() {
+    fun `less than supported`() {
         val advent = Advent5(7)
         assertEquals(listOf(1L), advent.firstTask(listOf("3,9,7,9,10,9,4,9,99,-1,8")))
     }
 
     @Test
-    fun testEqualsImmediate() {
+    fun `equals with immediate mode supported`() {
         val advent = Advent5(8)
         assertEquals(listOf(1L), advent.firstTask(listOf("3,3,1108,-1,8,3,4,3,99")))
     }
 
     @Test
-    fun testLessThanImmediate() {
+    fun `less than with immediate mode supported`() {
         val advent = Advent5(7)
         assertEquals(listOf(1L), advent.firstTask(listOf("3,3,1107,-1,8,3,4,3,99")))
     }
 
     @Test
-    fun testJumping() {
+    fun `jumping supported`() {
         val advent = Advent5(10)
         assertEquals(listOf(1L), advent.firstTask(listOf("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9")))
     }
 
     @Test
-    fun testJumpingImmediate() {
+    fun `jumping with immediate mode supported`() {
         val advent = Advent5(0)
         assertEquals(listOf(0L), advent.firstTask(listOf("3,3,1105,-1,9,1101,0,0,12,4,12,99,1")))
     }
 
     @Test
-    fun testLargerExample() {
+    fun `comparison with eight works`() {
         assertEquals(
             listOf(999L),
             Advent5(

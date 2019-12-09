@@ -19,23 +19,16 @@
     </div>
 
     <div class="row">
-        <div class="column" style="text-align: center"><p>Solutions to AoC2019 using only Kotlin standard library with
+        <div class="column" style="text-align: center"><p>Solutions to <a href="https://adventofcode.com/">AoC2019</a>
+            using only <a href="https://kotlinlang.org/api/latest/jvm/stdlib/index.html">Kotlin standard library</a>
+            with
             in-browser runnable tests</p>
         </div>
     </div>
 
     <div class="row">
         <div class="column" style="text-align: center">
-            <ul>
-                <li><a href="https://aoc.maido.io/advent1.html">Advent1</a></li>
-                <li><a href="https://aoc.maido.io/advent2.html">Advent2</a></li>
-                <li><a href="https://aoc.maido.io/advent3.html">Advent3</a></li>
-                <li><a href="https://aoc.maido.io/advent4.html">Advent4</a></li>
-                <li><a href="https://aoc.maido.io/advent5.html">Advent5</a></li>
-                <li><a href="https://aoc.maido.io/advent6.html">Advent6</a></li>
-                <li><a href="https://aoc.maido.io/advent7.html">Advent7</a></li>
-                <li><a href="https://aoc.maido.io/advent8.html">Advent8</a></li>
-                <li><a href="https://aoc.maido.io/advent9.html">Advent9</a></li>
+            <ul id="menu">
             </ul>
         </div>
     </div>
@@ -47,7 +40,18 @@
             </div>
         </div>
     </footer>
-
 </div>
+<script>
+    const menu = document.getElementById("menu");
+    const items = ["Advent1", "Advent2", "Advent3", "Advent4", "Advent5", "Advent6", "Advent7", "Advent8", "Advent9"];
+    items.forEach(item => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = `https://aoc.maido.io/${item}.html`.toLocaleLowerCase();
+        a.text = item;
+        li.appendChild(a);
+        menu.appendChild(li);
+    });
+</script>
 </body>
 </html>
