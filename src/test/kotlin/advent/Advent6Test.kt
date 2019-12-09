@@ -4,9 +4,11 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class Advent6Test {
+
+    private val advent = Advent6()
+
     @Test
-    fun testWithValue() {
-        val advent = Advent6()
+    fun `calculates all orbits`() {
         assertEquals(
             42, advent.firstTask(
                 listOf(
@@ -27,8 +29,7 @@ class Advent6Test {
     }
 
     @Test
-    fun testWithValueSecondTask() {
-        val advent = Advent6()
+    fun `calculates orbits from YOU to SAN`() {
         assertEquals(
             4, advent.secondTask(
                 listOf(

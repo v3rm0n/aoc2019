@@ -27,13 +27,11 @@ fun removeImportsAndPackage(content: String): String =
 
 tasks {
     val generateHTML by creating {
-        copy {
-            from("$rootDir/src/main/resources/index.html")
-            into("docs")
-        }
+        val items = mutableListOf<String>()
         file("$rootDir/src/main/kotlin/advent").list()!!.filter { it != "Advent.kt" }.map {
             copy {
                 val name = it.removeSuffix(".kt")
+                items.add(name)
                 val content = file("$rootDir/src/main/kotlin/advent/$name.kt").readText()
                 val testContent = file("$rootDir/src/test/kotlin/advent/${name}Test.kt").readText()
                 from("$rootDir/src/main/resources/template.html") {
@@ -45,6 +43,14 @@ tasks {
                 into("docs")
                 rename { "${name.toLowerCase()}.html" }
             }
+        }
+        copy {
+            from("$rootDir/src/main/resources/index.html") {
+                expand(
+                    "MENU" to items.sorted().joinToString { "\"${it}\"" }
+                )
+            }
+            into("docs")
         }
     }
 
