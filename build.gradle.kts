@@ -21,7 +21,6 @@ fun resolveCalculator(content: String): String {
 
 fun removeImportsAndPackage(content: String): String =
     resolveCalculator(content).lines().filter { !it.contains("import") && !it.contains("package") }
-        .map { it.prependIndent() }
         .joinToString("\n") {
             it.replace("<", "&lt;").replace(">", "&gt;")
         }
