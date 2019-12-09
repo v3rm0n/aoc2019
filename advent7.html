@@ -9,196 +9,196 @@
     <meta name="author" content="Maido Käära">
 </head>
 <body>
+<pre>
 <code data-target-platform="junit">
-    import org.junit.Test
-    import kotlin.test.assertEquals
-    import java.util.concurrent.BlockingQueue
-    import java.util.concurrent.CountDownLatch
-    import java.util.concurrent.Executors
-    import java.util.concurrent.LinkedBlockingQueue
+import org.junit.Test
+import kotlin.test.assertEquals
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
 
-    interface Advent {
-        fun firstTask(input: List&lt;String&gt;): Any
-        fun secondTask(input: List&lt;String&gt;): Any
+interface Advent {
+    fun firstTask(input: List&lt;String&gt;): Any
+    fun secondTask(input: List&lt;String&gt;): Any
+}
+
+
+
+
+class Calculator(private val codes: List&lt;Long&gt;, private val phase: Long? = null) {
+
+    private val executor = Executors.newSingleThreadExecutor()
+    private val haltingLatch = CountDownLatch(1)
+    var halted = false
+
+    private fun isImmediate(opcode: String, param: Int) =
+        opcode.reversed().drop(1)[param].toString().toInt() == 1
+
+    private fun isRelative(opcode: String, param: Int) = opcode.reversed().drop(1)[param].toString().toInt() == 2
+
+    fun calculate(inputs: List&lt;Long&gt;): List&lt;Long&gt; {
+        val inputChannel = LinkedBlockingQueue&lt;Long&gt;(inputs)
+        return calculate(inputChannel).let {
+            haltingLatch.await()
+            it.toList()
+        }
     }
 
-        
-    
-    
-    class Calculator(private val codes: List&lt;Long&gt;, private val phase: Long? = null) {
-    
-        private val executor = Executors.newSingleThreadExecutor()
-        private val haltingLatch = CountDownLatch(1)
-        var halted = false
-    
-        private fun isImmediate(opcode: String, param: Int) =
-            opcode.reversed().drop(1)[param].toString().toInt() == 1
-    
-        private fun isRelative(opcode: String, param: Int) = opcode.reversed().drop(1)[param].toString().toInt() == 2
-    
-        fun calculate(inputs: List&lt;Long&gt;): List&lt;Long&gt; {
-            val inputChannel = LinkedBlockingQueue&lt;Long&gt;(inputs)
-            return calculate(inputChannel).let {
-                haltingLatch.await()
-                it.toList()
+    fun calculate(input: BlockingQueue&lt;Long&gt;): BlockingQueue&lt;Long&gt; {
+        val output = LinkedBlockingQueue&lt;Long&gt;()
+        executor.execute {
+            val intcodes = codes.mapIndexed { index, i -&gt; index.toLong() to i }
+                .toMap().toMutableMap()
+
+            var relativeBase = 0L
+
+            fun getValue(i: Long): Long {
+                return intcodes[i] ?: 0L
+            }
+
+            fun setValue(opcode: String, i: Long, value: Long, param: Int) {
+                when {
+                    isRelative(opcode, param) -&gt; intcodes[relativeBase + i] = value
+                    else -&gt; intcodes[i] = value
+                }
+            }
+
+            fun paramValue(opcode: String, i: Long, param: Int) =
+                when {
+                    isImmediate(opcode, param) -&gt; getValue(i + param)
+                    isRelative(opcode, param) -&gt; getValue(relativeBase + intcodes[i + param]!!)
+                    else -&gt; getValue(intcodes[i + param]!!)
+                }
+
+            var i = 0L
+            var phaseUsed = false
+            loop@ while (true) {
+                val opcode = intcodes[i].toString().padStart(5, '0')
+                when (opcode.drop(3).toInt()) {
+                    1 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        setValue(opcode, intcodes[i + 3]!!, param1 + param2, 3)
+                        i += 4
+                    }
+                    2 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        setValue(opcode, intcodes[i + 3]!!, param1 * param2, 3)
+                        i += 4
+                    }
+                    3 -&gt; {
+                        val value = if (phase != null && !phaseUsed) {
+                            phaseUsed = true
+                            phase
+                        } else {
+                            input.take()
+                        }
+                        setValue(opcode, intcodes[i + 1]!!, value, 1)
+                        i += 2
+                    }
+                    4 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        output.put(param1)
+                        i += 2
+                    }
+                    5 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        if (param1 != 0L) {
+                            i = param2
+                        } else {
+                            i += 3
+                        }
+                    }
+                    6 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        if (param1 == 0L) {
+                            i = param2
+                        } else {
+                            i += 3
+                        }
+                    }
+                    7 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        setValue(opcode, intcodes[i + 3]!!, if (param1 &lt; param2) 1L else 0L, 3)
+                        i += 4
+                    }
+                    8 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        setValue(opcode, intcodes[i + 3]!!, if (param1 == param2) 1L else 0L, 3)
+                        i += 4
+                    }
+                    9 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        relativeBase += param1
+                        i += 2
+                    }
+                    99 -&gt; {
+                        halted = true
+                        haltingLatch.countDown()
+                        break@loop
+                    }
+
+                }
             }
         }
-    
-        fun calculate(input: BlockingQueue&lt;Long&gt;): BlockingQueue&lt;Long&gt; {
-            val output = LinkedBlockingQueue&lt;Long&gt;()
-            executor.execute {
-                val intcodes = codes.mapIndexed { index, i -&gt; index.toLong() to i }
-                    .toMap().toMutableMap()
-    
-                var relativeBase = 0L
-    
-                fun getValue(i: Long): Long {
-                    return intcodes[i] ?: 0L
-                }
-    
-                fun setValue(opcode: String, i: Long, value: Long, param: Int) {
-                    when {
-                        isRelative(opcode, param) -&gt; intcodes[relativeBase + i] = value
-                        else -&gt; intcodes[i] = value
-                    }
-                }
-    
-                fun paramValue(opcode: String, i: Long, param: Int) =
-                    when {
-                        isImmediate(opcode, param) -&gt; getValue(i + param)
-                        isRelative(opcode, param) -&gt; getValue(relativeBase + intcodes[i + param]!!)
-                        else -&gt; getValue(intcodes[i + param]!!)
-                    }
-    
-                var i = 0L
-                var phaseUsed = false
-                loop@ while (true) {
-                    val opcode = intcodes[i].toString().padStart(5, '0')
-                    when (opcode.drop(3).toInt()) {
-                        1 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            setValue(opcode, intcodes[i + 3]!!, param1 + param2, 3)
-                            i += 4
-                        }
-                        2 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            setValue(opcode, intcodes[i + 3]!!, param1 * param2, 3)
-                            i += 4
-                        }
-                        3 -&gt; {
-                            val value = if (phase != null && !phaseUsed) {
-                                phaseUsed = true
-                                phase
-                            } else {
-                                input.take()
-                            }
-                            setValue(opcode, intcodes[i + 1]!!, value, 1)
-                            i += 2
-                        }
-                        4 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            output.put(param1)
-                            i += 2
-                        }
-                        5 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            if (param1 != 0L) {
-                                i = param2
-                            } else {
-                                i += 3
-                            }
-                        }
-                        6 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            if (param1 == 0L) {
-                                i = param2
-                            } else {
-                                i += 3
-                            }
-                        }
-                        7 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            setValue(opcode, intcodes[i + 3]!!, if (param1 &lt; param2) 1L else 0L, 3)
-                            i += 4
-                        }
-                        8 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            setValue(opcode, intcodes[i + 3]!!, if (param1 == param2) 1L else 0L, 3)
-                            i += 4
-                        }
-                        9 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            relativeBase += param1
-                            i += 2
-                        }
-                        99 -&gt; {
-                            halted = true
-                            haltingLatch.countDown()
-                            break@loop
-                        }
-    
-                    }
-                }
+        return output
+    }
+}
+
+
+class Advent7 : Advent {
+    override fun firstTask(input: List&lt;String&gt;) = phases(input)
+    override fun secondTask(input: List&lt;String&gt;): Long {
+        val intcodes = input.flatMap { it.split(',').map(String::toLong) }
+        return forUniqueValues(5..9L) { a, b, c, d, e -&gt;
+            val firstChannel = LinkedBlockingQueue&lt;Long&gt;(1)
+            firstChannel.put(0L)
+            val firstCalculator = Calculator(intcodes, a)
+            val first = firstCalculator.calculate(firstChannel)
+            val second = Calculator(intcodes, b).calculate(first)
+            val third = Calculator(intcodes, c).calculate(second)
+            val fourth = Calculator(intcodes, d).calculate(third)
+            val fifth = Calculator(intcodes, e).calculate(fourth)
+            var lastValue = 0L
+            while (!firstCalculator.halted) {
+                lastValue = fifth.take()
+                firstChannel.put(lastValue)
             }
-            return output
+            lastValue
         }
     }
-    
-    
-    class Advent7 : Advent {
-        override fun firstTask(input: List&lt;String&gt;) = phases(input)
-        override fun secondTask(input: List&lt;String&gt;): Long {
-            val intcodes = input.flatMap { it.split(',').map(String::toLong) }
-            return forUniqueValues(5..9L) { a, b, c, d, e -&gt;
-                val firstChannel = LinkedBlockingQueue&lt;Long&gt;(1)
-                firstChannel.put(0L)
-                val firstCalculator = Calculator(intcodes, a)
-                val first = firstCalculator.calculate(firstChannel)
-                val second = Calculator(intcodes, b).calculate(first)
-                val third = Calculator(intcodes, c).calculate(second)
-                val fourth = Calculator(intcodes, d).calculate(third)
-                val fifth = Calculator(intcodes, e).calculate(fourth)
-                var lastValue = 0L
-                while (!firstCalculator.halted) {
-                    lastValue = fifth.take()
-                    firstChannel.put(lastValue)
-                }
-                lastValue
-            }
+
+    private fun phases(input: List&lt;String&gt;): Long {
+        val intcodes = input.flatMap { it.split(',').map(String::toLong) }
+        return forUniqueValues(0..4L) { a, b, c, d, e -&gt;
+            val first = Calculator(intcodes).calculate(listOf(a, 0)).first()
+            val second = Calculator(intcodes).calculate(listOf(b, first)).first()
+            val third = Calculator(intcodes).calculate(listOf(c, second)).first()
+            val fourth = Calculator(intcodes).calculate(listOf(d, third)).first()
+            Calculator(intcodes).calculate(listOf(e, fourth)).first()
         }
-    
-        private fun phases(input: List&lt;String&gt;): Long {
-            val intcodes = input.flatMap { it.split(',').map(String::toLong) }
-            return forUniqueValues(0..4L) { a, b, c, d, e -&gt;
-                val first = Calculator(intcodes).calculate(listOf(a, 0)).first()
-                val second = Calculator(intcodes).calculate(listOf(b, first)).first()
-                val third = Calculator(intcodes).calculate(listOf(c, second)).first()
-                val fourth = Calculator(intcodes).calculate(listOf(d, third)).first()
-                Calculator(intcodes).calculate(listOf(e, fourth)).first()
-            }
-        }
-    
-        private fun forUniqueValues(range: LongRange, func: (Long, Long, Long, Long, Long) -&gt; Long): Long {
-            var largestValue = 0L
-            for (a in range) {
-                for (b in range) {
-                    if (a != b) {
-                        for (c in range) {
-                            if (c != b && c != a) {
-                                for (d in range) {
-                                    if (d != c && d != b && d != a) {
-                                        for (e in range) {
-                                            if (e != d && e != b && e != c && e != a) {
-                                                val newValue = func(a, b, c, d, e)
-                                                if (newValue &gt; largestValue) {
-                                                    largestValue = newValue
-                                                }
+    }
+
+    private fun forUniqueValues(range: LongRange, func: (Long, Long, Long, Long, Long) -&gt; Long): Long {
+        var largestValue = 0L
+        for (a in range) {
+            for (b in range) {
+                if (a != b) {
+                    for (c in range) {
+                        if (c != b && c != a) {
+                            for (d in range) {
+                                if (d != c && d != b && d != a) {
+                                    for (e in range) {
+                                        if (e != d && e != b && e != c && e != a) {
+                                            val newValue = func(a, b, c, d, e)
+                                            if (newValue &gt; largestValue) {
+                                                largestValue = newValue
                                             }
                                         }
                                     }
@@ -208,54 +208,56 @@
                     }
                 }
             }
-            return largestValue
         }
+        return largestValue
     }
-    
-    
+}
 
-        
-    
-    class Advent7Test {
-        @Test
-        fun testWithValue() {
-            val advent = Advent7()
-            assertEquals(43210, advent.firstTask(listOf("3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0")))
-        }
-    
-        @Test
-        fun testWithValueSecond() {
-            val advent = Advent7()
-            assertEquals(
-                139629729,
-                advent.secondTask(listOf("3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5"))
-            )
-        }
-    
-        @Test
-        fun testWithSecondValue() {
-            val advent = Advent7()
-            assertEquals(
-                54321,
-                advent.firstTask(listOf("3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0"))
-            )
-            assertEquals(
-                18216,
-                advent.secondTask(listOf("3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10"))
-            )
-        }
-    
-        @Test
-        fun testWithThirdValue() {
-            val advent = Advent7()
-            assertEquals(
-                65210,
-                advent.firstTask(listOf("3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0"))
-            )
-        }
+
+
+
+
+class Advent7Test {
+    @Test
+    fun testWithValue() {
+        val advent = Advent7()
+        assertEquals(43210, advent.firstTask(listOf("3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0")))
     }
-    
+
+    @Test
+    fun testWithValueSecond() {
+        val advent = Advent7()
+        assertEquals(
+            139629729,
+            advent.secondTask(listOf("3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5"))
+        )
+    }
+
+    @Test
+    fun testWithSecondValue() {
+        val advent = Advent7()
+        assertEquals(
+            54321,
+            advent.firstTask(listOf("3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0"))
+        )
+        assertEquals(
+            18216,
+            advent.secondTask(listOf("3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10"))
+        )
+    }
+
+    @Test
+    fun testWithThirdValue() {
+        val advent = Advent7()
+        assertEquals(
+            65210,
+            advent.firstTask(listOf("3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0"))
+        )
+    }
+}
+
 </code>
+</pre>
 <script src="https://unpkg.com/kotlin-playground@1" data-selector="code"></script>
 </body>
 </html>

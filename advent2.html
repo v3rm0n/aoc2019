@@ -9,74 +9,76 @@
     <meta name="author" content="Maido Käära">
 </head>
 <body>
+<pre>
 <code data-target-platform="junit">
-    import org.junit.Test
-    import kotlin.test.assertEquals
-    import java.util.concurrent.BlockingQueue
-    import java.util.concurrent.CountDownLatch
-    import java.util.concurrent.Executors
-    import java.util.concurrent.LinkedBlockingQueue
+import org.junit.Test
+import kotlin.test.assertEquals
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
 
-    interface Advent {
-        fun firstTask(input: List&lt;String&gt;): Any
-        fun secondTask(input: List&lt;String&gt;): Any
+interface Advent {
+    fun firstTask(input: List&lt;String&gt;): Any
+    fun secondTask(input: List&lt;String&gt;): Any
+}
+
+
+class Advent2(private val inputs: List&lt;Int&gt; = listOf(12, 2)) : Advent {
+
+    override fun firstTask(input: List&lt;String&gt;) =
+        calculate(input.flatMap { it.split(',').map(String::toInt) }.toMutableList(), inputs)
+
+    override fun secondTask(input: List&lt;String&gt;) =
+        findNounAndVerb(input.flatMap { it.split(',').map(String::toInt) }.toMutableList())
+
+    private fun findNounAndVerb(intcodes: MutableList&lt;Int&gt;): Int {
+        for (i in (0..100)) {
+            for (j in (0..100)) {
+                if (calculate(intcodes.toMutableList(), listOf(i, j)) == 19690720) return 100 * i + j
+            }
+        }
+        return -1
     }
 
-        
-    class Advent2(private val inputs: List&lt;Int&gt; = listOf(12, 2)) : Advent {
-    
-        override fun firstTask(input: List&lt;String&gt;) =
-            calculate(input.flatMap { it.split(',').map(String::toInt) }.toMutableList(), inputs)
-    
-        override fun secondTask(input: List&lt;String&gt;) =
-            findNounAndVerb(input.flatMap { it.split(',').map(String::toInt) }.toMutableList())
-    
-        private fun findNounAndVerb(intcodes: MutableList&lt;Int&gt;): Int {
-            for (i in (0..100)) {
-                for (j in (0..100)) {
-                    if (calculate(intcodes.toMutableList(), listOf(i, j)) == 19690720) return 100 * i + j
-                }
-            }
-            return -1
+    private fun calculate(intcodes: MutableList&lt;Int&gt;, inputs: List&lt;Int&gt;): Int {
+        if (inputs.isNotEmpty()) {
+            val (first, second) = inputs
+            intcodes[1] = first
+            intcodes[2] = second
         }
-    
-        private fun calculate(intcodes: MutableList&lt;Int&gt;, inputs: List&lt;Int&gt;): Int {
-            if (inputs.isNotEmpty()) {
-                val (first, second) = inputs
-                intcodes[1] = first
-                intcodes[2] = second
+        loop@ for (i in (0 until intcodes.size) step 4) {
+            when (intcodes[i]) {
+                1 -&gt; intcodes[intcodes[i + 3]] = intcodes[intcodes[i + 1]] + intcodes[intcodes[i + 2]]
+                2 -&gt; intcodes[intcodes[i + 3]] = intcodes[intcodes[i + 1]] * intcodes[intcodes[i + 2]]
+                99 -&gt; break@loop
             }
-            loop@ for (i in (0 until intcodes.size) step 4) {
-                when (intcodes[i]) {
-                    1 -&gt; intcodes[intcodes[i + 3]] = intcodes[intcodes[i + 1]] + intcodes[intcodes[i + 2]]
-                    2 -&gt; intcodes[intcodes[i + 3]] = intcodes[intcodes[i + 1]] * intcodes[intcodes[i + 2]]
-                    99 -&gt; break@loop
-                }
-            }
-            return intcodes[0]
         }
+        return intcodes[0]
     }
-    
-    
-    
+}
 
-        
-    
-    class Advent2Test {
-        @Test
-        fun testWithValue() {
-            val advent2 = Advent2(emptyList())
-            assertEquals(3500, advent2.firstTask(listOf("1,9,10,3,2,3,11,0,99,30,40,50")))
-        }
-    
-        @Test
-        fun testWithOtherValue() {
-            val advent2 = Advent2(emptyList())
-            assertEquals(30, advent2.firstTask(listOf("1,1,1,4,99,5,6,0,99")))
-        }
+
+
+
+
+
+class Advent2Test {
+    @Test
+    fun `calculates 3500`() {
+        val advent2 = Advent2(emptyList())
+        assertEquals(3500, advent2.firstTask(listOf("1,9,10,3,2,3,11,0,99,30,40,50")))
     }
-    
+
+    @Test
+    fun `calculates 30`() {
+        val advent2 = Advent2(emptyList())
+        assertEquals(30, advent2.firstTask(listOf("1,1,1,4,99,5,6,0,99")))
+    }
+}
+
 </code>
+</pre>
 <script src="https://unpkg.com/kotlin-playground@1" data-selector="code"></script>
 </body>
 </html>

@@ -9,257 +9,259 @@
     <meta name="author" content="Maido Käära">
 </head>
 <body>
+<pre>
 <code data-target-platform="junit">
-    import org.junit.Test
-    import kotlin.test.assertEquals
-    import java.util.concurrent.BlockingQueue
-    import java.util.concurrent.CountDownLatch
-    import java.util.concurrent.Executors
-    import java.util.concurrent.LinkedBlockingQueue
+import org.junit.Test
+import kotlin.test.assertEquals
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
 
-    interface Advent {
-        fun firstTask(input: List&lt;String&gt;): Any
-        fun secondTask(input: List&lt;String&gt;): Any
+interface Advent {
+    fun firstTask(input: List&lt;String&gt;): Any
+    fun secondTask(input: List&lt;String&gt;): Any
+}
+
+
+
+
+class Calculator(private val codes: List&lt;Long&gt;, private val phase: Long? = null) {
+
+    private val executor = Executors.newSingleThreadExecutor()
+    private val haltingLatch = CountDownLatch(1)
+    var halted = false
+
+    private fun isImmediate(opcode: String, param: Int) =
+        opcode.reversed().drop(1)[param].toString().toInt() == 1
+
+    private fun isRelative(opcode: String, param: Int) = opcode.reversed().drop(1)[param].toString().toInt() == 2
+
+    fun calculate(inputs: List&lt;Long&gt;): List&lt;Long&gt; {
+        val inputChannel = LinkedBlockingQueue&lt;Long&gt;(inputs)
+        return calculate(inputChannel).let {
+            haltingLatch.await()
+            it.toList()
+        }
     }
 
-        
-    
-    
-    class Calculator(private val codes: List&lt;Long&gt;, private val phase: Long? = null) {
-    
-        private val executor = Executors.newSingleThreadExecutor()
-        private val haltingLatch = CountDownLatch(1)
-        var halted = false
-    
-        private fun isImmediate(opcode: String, param: Int) =
-            opcode.reversed().drop(1)[param].toString().toInt() == 1
-    
-        private fun isRelative(opcode: String, param: Int) = opcode.reversed().drop(1)[param].toString().toInt() == 2
-    
-        fun calculate(inputs: List&lt;Long&gt;): List&lt;Long&gt; {
-            val inputChannel = LinkedBlockingQueue&lt;Long&gt;(inputs)
-            return calculate(inputChannel).let {
-                haltingLatch.await()
-                it.toList()
+    fun calculate(input: BlockingQueue&lt;Long&gt;): BlockingQueue&lt;Long&gt; {
+        val output = LinkedBlockingQueue&lt;Long&gt;()
+        executor.execute {
+            val intcodes = codes.mapIndexed { index, i -&gt; index.toLong() to i }
+                .toMap().toMutableMap()
+
+            var relativeBase = 0L
+
+            fun getValue(i: Long): Long {
+                return intcodes[i] ?: 0L
             }
-        }
-    
-        fun calculate(input: BlockingQueue&lt;Long&gt;): BlockingQueue&lt;Long&gt; {
-            val output = LinkedBlockingQueue&lt;Long&gt;()
-            executor.execute {
-                val intcodes = codes.mapIndexed { index, i -&gt; index.toLong() to i }
-                    .toMap().toMutableMap()
-    
-                var relativeBase = 0L
-    
-                fun getValue(i: Long): Long {
-                    return intcodes[i] ?: 0L
-                }
-    
-                fun setValue(opcode: String, i: Long, value: Long, param: Int) {
-                    when {
-                        isRelative(opcode, param) -&gt; intcodes[relativeBase + i] = value
-                        else -&gt; intcodes[i] = value
-                    }
-                }
-    
-                fun paramValue(opcode: String, i: Long, param: Int) =
-                    when {
-                        isImmediate(opcode, param) -&gt; getValue(i + param)
-                        isRelative(opcode, param) -&gt; getValue(relativeBase + intcodes[i + param]!!)
-                        else -&gt; getValue(intcodes[i + param]!!)
-                    }
-    
-                var i = 0L
-                var phaseUsed = false
-                loop@ while (true) {
-                    val opcode = intcodes[i].toString().padStart(5, '0')
-                    when (opcode.drop(3).toInt()) {
-                        1 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            setValue(opcode, intcodes[i + 3]!!, param1 + param2, 3)
-                            i += 4
-                        }
-                        2 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            setValue(opcode, intcodes[i + 3]!!, param1 * param2, 3)
-                            i += 4
-                        }
-                        3 -&gt; {
-                            val value = if (phase != null && !phaseUsed) {
-                                phaseUsed = true
-                                phase
-                            } else {
-                                input.take()
-                            }
-                            setValue(opcode, intcodes[i + 1]!!, value, 1)
-                            i += 2
-                        }
-                        4 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            output.put(param1)
-                            i += 2
-                        }
-                        5 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            if (param1 != 0L) {
-                                i = param2
-                            } else {
-                                i += 3
-                            }
-                        }
-                        6 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            if (param1 == 0L) {
-                                i = param2
-                            } else {
-                                i += 3
-                            }
-                        }
-                        7 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            setValue(opcode, intcodes[i + 3]!!, if (param1 &lt; param2) 1L else 0L, 3)
-                            i += 4
-                        }
-                        8 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            val param2 = paramValue(opcode, i, 2)
-                            setValue(opcode, intcodes[i + 3]!!, if (param1 == param2) 1L else 0L, 3)
-                            i += 4
-                        }
-                        9 -&gt; {
-                            val param1 = paramValue(opcode, i, 1)
-                            relativeBase += param1
-                            i += 2
-                        }
-                        99 -&gt; {
-                            halted = true
-                            haltingLatch.countDown()
-                            break@loop
-                        }
-    
-                    }
+
+            fun setValue(opcode: String, i: Long, value: Long, param: Int) {
+                when {
+                    isRelative(opcode, param) -&gt; intcodes[relativeBase + i] = value
+                    else -&gt; intcodes[i] = value
                 }
             }
-            return output
-        }
-    }
-    
-    
-    class Advent5(
-        private val firstInput: Long? = 1L,
-        private val secondInput: Long? = 5L
-    ) : Advent {
-        override fun firstTask(input: List&lt;String&gt;) = calculate(input, firstInput)
-    
-        override fun secondTask(input: List&lt;String&gt;) = calculate(input, secondInput)
-    
-        private fun calculate(input: List&lt;String&gt;, inputValue: Long?): List&lt;Long&gt; {
-            val calculator = Calculator(input.flatMap { it.split(',').map(String::toLong) })
-            return calculator.calculate(if (inputValue != null) listOf(inputValue) else emptyList())
-        }
-    }
-    
 
-        
-    
-    class Advent5Test {
-    
-        @Test
-        fun testOutputsInputValue() {
-            val advent = Advent5(10)
-            assertEquals(listOf(10L), advent.firstTask(listOf("3,0,4,0,99")))
+            fun paramValue(opcode: String, i: Long, param: Int) =
+                when {
+                    isImmediate(opcode, param) -&gt; getValue(i + param)
+                    isRelative(opcode, param) -&gt; getValue(relativeBase + intcodes[i + param]!!)
+                    else -&gt; getValue(intcodes[i + param]!!)
+                }
+
+            var i = 0L
+            var phaseUsed = false
+            loop@ while (true) {
+                val opcode = intcodes[i].toString().padStart(5, '0')
+                when (opcode.drop(3).toInt()) {
+                    1 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        setValue(opcode, intcodes[i + 3]!!, param1 + param2, 3)
+                        i += 4
+                    }
+                    2 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        setValue(opcode, intcodes[i + 3]!!, param1 * param2, 3)
+                        i += 4
+                    }
+                    3 -&gt; {
+                        val value = if (phase != null && !phaseUsed) {
+                            phaseUsed = true
+                            phase
+                        } else {
+                            input.take()
+                        }
+                        setValue(opcode, intcodes[i + 1]!!, value, 1)
+                        i += 2
+                    }
+                    4 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        output.put(param1)
+                        i += 2
+                    }
+                    5 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        if (param1 != 0L) {
+                            i = param2
+                        } else {
+                            i += 3
+                        }
+                    }
+                    6 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        if (param1 == 0L) {
+                            i = param2
+                        } else {
+                            i += 3
+                        }
+                    }
+                    7 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        setValue(opcode, intcodes[i + 3]!!, if (param1 &lt; param2) 1L else 0L, 3)
+                        i += 4
+                    }
+                    8 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        val param2 = paramValue(opcode, i, 2)
+                        setValue(opcode, intcodes[i + 3]!!, if (param1 == param2) 1L else 0L, 3)
+                        i += 4
+                    }
+                    9 -&gt; {
+                        val param1 = paramValue(opcode, i, 1)
+                        relativeBase += param1
+                        i += 2
+                    }
+                    99 -&gt; {
+                        halted = true
+                        haltingLatch.countDown()
+                        break@loop
+                    }
+
+                }
+            }
         }
-    
-        @Test
-        fun testParameterMode() {
-            val advent = Advent5(null, null)
-            assertEquals(emptyList(), advent.firstTask(listOf("1002,4,3,4,33")))
-        }
-    
-        @Test
-        fun testNegativeValues() {
-            val advent = Advent5(null, null)
-            assertEquals(emptyList(), advent.firstTask(listOf("1101,100,-1,4,0")))
-        }
-    
-        @Test
-        fun testEquals() {
-            val advent = Advent5(8)
-            assertEquals(listOf(1L), advent.firstTask(listOf("3,9,8,9,10,9,4,9,99,-1,8")))
-        }
-    
-        @Test
-        fun testLessThan() {
-            val advent = Advent5(7)
-            assertEquals(listOf(1L), advent.firstTask(listOf("3,9,7,9,10,9,4,9,99,-1,8")))
-        }
-    
-        @Test
-        fun testEqualsImmediate() {
-            val advent = Advent5(8)
-            assertEquals(listOf(1L), advent.firstTask(listOf("3,3,1108,-1,8,3,4,3,99")))
-        }
-    
-        @Test
-        fun testLessThanImmediate() {
-            val advent = Advent5(7)
-            assertEquals(listOf(1L), advent.firstTask(listOf("3,3,1107,-1,8,3,4,3,99")))
-        }
-    
-        @Test
-        fun testJumping() {
-            val advent = Advent5(10)
-            assertEquals(listOf(1L), advent.firstTask(listOf("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9")))
-        }
-    
-        @Test
-        fun testJumpingImmediate() {
-            val advent = Advent5(0)
-            assertEquals(listOf(0L), advent.firstTask(listOf("3,3,1105,-1,9,1101,0,0,12,4,12,99,1")))
-        }
-    
-        @Test
-        fun testLargerExample() {
-            assertEquals(
-                listOf(999L),
-                Advent5(
-                    7
-                ).firstTask(
-                    listOf(
-                        """3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"""
-                    )
-                )
-            )
-            assertEquals(
-                listOf(1000L),
-                Advent5(
-                    8
-                ).firstTask(
-                    listOf(
-                        """3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"""
-                    )
-                )
-            )
-            assertEquals(
-                listOf(1001L),
-                Advent5(
-                    10
-                ).firstTask(
-                    listOf(
-                        """3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"""
-                    )
-                )
-            )
-        }
+        return output
     }
-    
+}
+
+
+class Advent5(
+    private val firstInput: Long? = 1L,
+    private val secondInput: Long? = 5L
+) : Advent {
+    override fun firstTask(input: List&lt;String&gt;) = calculate(input, firstInput)
+
+    override fun secondTask(input: List&lt;String&gt;) = calculate(input, secondInput)
+
+    private fun calculate(input: List&lt;String&gt;, inputValue: Long?): List&lt;Long&gt; {
+        val calculator = Calculator(input.flatMap { it.split(',').map(String::toLong) })
+        return calculator.calculate(if (inputValue != null) listOf(inputValue) else emptyList())
+    }
+}
+
+
+
+
+class Advent5Test {
+
+    @Test
+    fun testOutputsInputValue() {
+        val advent = Advent5(10)
+        assertEquals(listOf(10L), advent.firstTask(listOf("3,0,4,0,99")))
+    }
+
+    @Test
+    fun testParameterMode() {
+        val advent = Advent5(null, null)
+        assertEquals(emptyList(), advent.firstTask(listOf("1002,4,3,4,33")))
+    }
+
+    @Test
+    fun testNegativeValues() {
+        val advent = Advent5(null, null)
+        assertEquals(emptyList(), advent.firstTask(listOf("1101,100,-1,4,0")))
+    }
+
+    @Test
+    fun testEquals() {
+        val advent = Advent5(8)
+        assertEquals(listOf(1L), advent.firstTask(listOf("3,9,8,9,10,9,4,9,99,-1,8")))
+    }
+
+    @Test
+    fun testLessThan() {
+        val advent = Advent5(7)
+        assertEquals(listOf(1L), advent.firstTask(listOf("3,9,7,9,10,9,4,9,99,-1,8")))
+    }
+
+    @Test
+    fun testEqualsImmediate() {
+        val advent = Advent5(8)
+        assertEquals(listOf(1L), advent.firstTask(listOf("3,3,1108,-1,8,3,4,3,99")))
+    }
+
+    @Test
+    fun testLessThanImmediate() {
+        val advent = Advent5(7)
+        assertEquals(listOf(1L), advent.firstTask(listOf("3,3,1107,-1,8,3,4,3,99")))
+    }
+
+    @Test
+    fun testJumping() {
+        val advent = Advent5(10)
+        assertEquals(listOf(1L), advent.firstTask(listOf("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9")))
+    }
+
+    @Test
+    fun testJumpingImmediate() {
+        val advent = Advent5(0)
+        assertEquals(listOf(0L), advent.firstTask(listOf("3,3,1105,-1,9,1101,0,0,12,4,12,99,1")))
+    }
+
+    @Test
+    fun testLargerExample() {
+        assertEquals(
+            listOf(999L),
+            Advent5(
+                7
+            ).firstTask(
+                listOf(
+                    """3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"""
+                )
+            )
+        )
+        assertEquals(
+            listOf(1000L),
+            Advent5(
+                8
+            ).firstTask(
+                listOf(
+                    """3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"""
+                )
+            )
+        )
+        assertEquals(
+            listOf(1001L),
+            Advent5(
+                10
+            ).firstTask(
+                listOf(
+                    """3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"""
+                )
+            )
+        )
+    }
+}
+
 </code>
+</pre>
 <script src="https://unpkg.com/kotlin-playground@1" data-selector="code"></script>
 </body>
 </html>

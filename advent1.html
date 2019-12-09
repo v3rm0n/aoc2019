@@ -9,65 +9,67 @@
     <meta name="author" content="Maido Käära">
 </head>
 <body>
+<pre>
 <code data-target-platform="junit">
-    import org.junit.Test
-    import kotlin.test.assertEquals
-    import java.util.concurrent.BlockingQueue
-    import java.util.concurrent.CountDownLatch
-    import java.util.concurrent.Executors
-    import java.util.concurrent.LinkedBlockingQueue
+import org.junit.Test
+import kotlin.test.assertEquals
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
 
-    interface Advent {
-        fun firstTask(input: List&lt;String&gt;): Any
-        fun secondTask(input: List&lt;String&gt;): Any
+interface Advent {
+    fun firstTask(input: List&lt;String&gt;): Any
+    fun secondTask(input: List&lt;String&gt;): Any
+}
+
+
+class Advent1 : Advent {
+
+    override fun firstTask(input: List&lt;String&gt;) = input.map(String::toInt).map { it / 3 - 2 }.sum()
+
+    override fun secondTask(input: List&lt;String&gt;) = input.map(String::toInt).map { getAllFuelForCargo(it) }.sum()
+
+    private tailrec fun getAllFuelForCargo(cargo: Int, acc: Int = 0): Int {
+        val fuel = cargo / 3 - 2
+        if (fuel &lt;= 0.0) {
+            return acc
+        }
+        return getAllFuelForCargo(fuel, acc + fuel)
+    }
+}
+
+
+
+
+
+class Advent1Test {
+
+    private val advent1 = Advent1()
+
+    @Test
+    fun `required fuel for 100756 is 33583`() {
+        assertEquals(33583, advent1.firstTask(listOf("100756")))
     }
 
-        
-    class Advent1 : Advent {
-    
-        override fun firstTask(input: List&lt;String&gt;) = input.map(String::toInt).map { it / 3 - 2 }.sum()
-    
-        override fun secondTask(input: List&lt;String&gt;) = input.map(String::toInt).map { getAllFuelForCargo(it) }.sum()
-    
-        private tailrec fun getAllFuelForCargo(cargo: Int, acc: Int = 0): Int {
-            val fuel = cargo / 3 - 2
-            if (fuel &lt;= 0.0) {
-                return acc
-            }
-            return getAllFuelForCargo(fuel, acc + fuel)
-        }
+    @Test
+    fun `required cumulative fuel for 100756 is 50346`() {
+        assertEquals(50346, advent1.secondTask(listOf("100756")))
     }
-    
-    
 
-        
-    
-    class Advent1Test {
-    
-        private val advent1 = Advent1()
-    
-        @Test
-        fun `required fuel for 100756 is 33583`() {
-            assertEquals(33583, advent1.firstTask(listOf("100756")))
-        }
-    
-        @Test
-        fun `required cumulative fuel for 100756 is 50346`() {
-            assertEquals(50346, advent1.secondTask(listOf("100756")))
-        }
-    
-        @Test
-        fun `required fuel for 1969 is 654`() {
-            assertEquals(654, advent1.firstTask(listOf("1969")))
-        }
-    
-        @Test
-        fun `required cumulative fuel for 1969 is 966`() {
-            assertEquals(966, advent1.secondTask(listOf("1969")))
-        }
+    @Test
+    fun `required fuel for 1969 is 654`() {
+        assertEquals(654, advent1.firstTask(listOf("1969")))
     }
-    
+
+    @Test
+    fun `required cumulative fuel for 1969 is 966`() {
+        assertEquals(966, advent1.secondTask(listOf("1969")))
+    }
+}
+
 </code>
+</pre>
 <script src="https://unpkg.com/kotlin-playground@1" data-selector="code"></script>
 </body>
 </html>
