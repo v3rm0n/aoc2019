@@ -1,10 +1,8 @@
 package advent
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-@ExperimentalCoroutinesApi
 class Advent5Test {
 
     @Test

@@ -1,16 +1,16 @@
 package intcode
 
 import advent.debugPrint
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.toList
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
 
-@ExperimentalCoroutinesApi
 class Calculator(private val codes: List<Long>, private val phase: Long? = null) {
+
+    private val executor = Executors.newSingleThreadExecutor()
+    private val haltingLatch = CountDownLatch(1)
+    var halted = false
 
     private fun isImmediate(opcode: String, param: Int) =
         opcode.reversed().drop(1)[param].toString().toInt() == 1
@@ -18,18 +18,18 @@ class Calculator(private val codes: List<Long>, private val phase: Long? = null)
     private fun isRelative(opcode: String, param: Int) = opcode.reversed().drop(1)[param].toString().toInt() == 2
 
     fun calculate(inputs: List<Long>): List<Long> {
-        return runBlocking {
-            val inputChannel = Channel<Long>()
-            inputs.map { launch { inputChannel.send(it) } }
-            calculate(inputChannel).toList().also {
-                coroutineContext.cancelChildren()
-            }
+        val inputChannel = LinkedBlockingQueue<Long>(inputs)
+        return calculate(inputChannel).let {
+            haltingLatch.await()
+            it.toList()
         }
     }
 
-    fun calculate(input: Channel<Long>): Channel<Long> {
-        val output = Channel<Long>()
-        GlobalScope.launch {
+    fun calculate(input: BlockingQueue<Long>): BlockingQueue<Long> {
+        debugPrint("Calculation inited")
+        val output = LinkedBlockingQueue<Long>()
+        executor.execute {
+            debugPrint("Calculating")
             val intcodes = codes.mapIndexed { index, i -> index.toLong() to i }
                 .toMap().toMutableMap()
 
@@ -79,7 +79,7 @@ class Calculator(private val codes: List<Long>, private val phase: Long? = null)
                             phaseUsed = true
                             phase
                         } else {
-                            input.receive()
+                            input.take()
                         }
                         debugPrint("Setting value on index ${intcodes[i + 1]} to $value")
                         setValue(opcode, intcodes[i + 1]!!, value, 1)
@@ -88,7 +88,7 @@ class Calculator(private val codes: List<Long>, private val phase: Long? = null)
                     4 -> {
                         val param1 = paramValue(opcode, i, 1)
                         debugPrint("Outputting value $param1")
-                        output.send(param1)
+                        output.put(param1)
                         i += 2
                     }
                     5 -> {
@@ -133,7 +133,8 @@ class Calculator(private val codes: List<Long>, private val phase: Long? = null)
                     }
                     99 -> {
                         debugPrint("Halting")
-                        output.close()
+                        halted = true
+                        haltingLatch.countDown()
                         break@loop
                     }
 

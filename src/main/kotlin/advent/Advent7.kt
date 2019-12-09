@@ -1,40 +1,27 @@
 package advent
 
 import intcode.Calculator
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import java.util.concurrent.LinkedBlockingQueue
 
-@ExperimentalCoroutinesApi
 class Advent7 : Advent {
     override fun firstTask(input: List<String>) = phases(input)
     override fun secondTask(input: List<String>): Long {
         val intcodes = input.flatMap { it.split(',').map(String::toLong) }
         return forUniqueValues(5..9L) { a, b, c, d, e ->
-            runBlocking {
-                val firstChannel = Channel<Long>()
-                val first = Calculator(intcodes, a).calculate(firstChannel)
-                val second = Calculator(intcodes, b).calculate(first)
-                val third = Calculator(intcodes, c).calculate(second)
-                val fourth = Calculator(intcodes, d).calculate(third)
-                val fifth = Calculator(intcodes, e).calculate(fourth)
-                launch {
-                    firstChannel.send(0L)
-                }
-                var lastValue = 0L
-                for (fifthValue in fifth) {
-                    lastValue = fifthValue
-                    if (!fifth.isClosedForReceive) {
-                        launch {
-                            firstChannel.send(fifthValue)
-                        }
-                    }
-                }
-                coroutineContext.cancelChildren()
-                lastValue
+            val firstChannel = LinkedBlockingQueue<Long>(1)
+            firstChannel.put(0L)
+            val firstCalculator = Calculator(intcodes, a)
+            val first = firstCalculator.calculate(firstChannel)
+            val second = Calculator(intcodes, b).calculate(first)
+            val third = Calculator(intcodes, c).calculate(second)
+            val fourth = Calculator(intcodes, d).calculate(third)
+            val fifth = Calculator(intcodes, e).calculate(fourth)
+            var lastValue = 0L
+            while (!firstCalculator.halted) {
+                lastValue = fifth.take()
+                firstChannel.put(lastValue)
             }
+            lastValue
         }
     }
 
@@ -73,7 +60,6 @@ class Advent7 : Advent {
                 }
             }
         }
-        println(largestValue)
         return largestValue
     }
 }

@@ -13,6 +13,6 @@ class Advent8Test {
     @Test
     fun testWithSecondValue() {
         val advent = Advent8(2, 2)
-        assertEquals(listOf("01", "10"), advent.secondTask(listOf("0222112222120000")))
+        assertEquals(listOf(listOf(0, 1), listOf(1, 0)), advent.secondTask(listOf("0222112222120000")))
     }
 }

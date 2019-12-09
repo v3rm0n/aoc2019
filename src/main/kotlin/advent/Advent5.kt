@@ -1,9 +1,7 @@
 package advent
 
 import intcode.Calculator
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@ExperimentalCoroutinesApi
 class Advent5(
     private val firstInput: Long? = 1L,
     private val secondInput: Long? = 5L

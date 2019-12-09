@@ -1,9 +1,7 @@
 package advent
 
 import intcode.Calculator
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@ExperimentalCoroutinesApi
 class Advent9 : Advent {
     override fun firstTask(input: List<String>): List<Long> {
         val intcodes = input.flatMap { it.split(',').map(String::toLong) }
