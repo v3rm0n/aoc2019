@@ -14,13 +14,24 @@ dependencies {
     testImplementation(kotlin("test-junit"))
 }
 
+fun resolveCalculator(content: String): String {
+    val calculator = file("$rootDir/src/main/kotlin/intcode/Calculator.kt").readText()
+    return content.replace("import intcode.Calculator", calculator)
+}
+
 fun removeImportsAndPackage(content: String): String =
-    content.lines().filter { !it.contains("import") && !it.contains("package") }.joinToString("\n") {
-        it.replace("<", "&lt;").replace(">", "&gt;")
-    }
+    resolveCalculator(content).lines().filter { !it.contains("import") && !it.contains("package") }
+        .map { it.prependIndent() }
+        .joinToString("\n") {
+            it.replace("<", "&lt;").replace(">", "&gt;")
+        }
 
 tasks {
     val generateHTML by creating {
+        copy {
+            from("$rootDir/src/main/resources/index.html")
+            into("docs")
+        }
         file("$rootDir/src/main/kotlin/advent").list()!!.filter { it != "Advent.kt" }.map {
             copy {
                 val name = it.removeSuffix(".kt")

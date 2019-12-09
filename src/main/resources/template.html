@@ -12,6 +12,10 @@
 <code data-target-platform="junit">
     import org.junit.Test
     import kotlin.test.assertEquals
+    import java.util.concurrent.BlockingQueue
+    import java.util.concurrent.CountDownLatch
+    import java.util.concurrent.Executors
+    import java.util.concurrent.LinkedBlockingQueue
 
     interface Advent {
         fun firstTask(input: List&lt;String&gt;): Any
