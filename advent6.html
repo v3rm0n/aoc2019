@@ -12,91 +12,95 @@
 <code data-target-platform="junit">
     import org.junit.Test
     import kotlin.test.assertEquals
+    import java.util.concurrent.BlockingQueue
+    import java.util.concurrent.CountDownLatch
+    import java.util.concurrent.Executors
+    import java.util.concurrent.LinkedBlockingQueue
 
     interface Advent {
         fun firstTask(input: List&lt;String&gt;): Any
         fun secondTask(input: List&lt;String&gt;): Any
     }
 
+        
+    class Advent6 : Advent {
     
-class Advent6 : Advent {
-
-    private fun orbits(input: List&lt;String&gt;) = input.map { it.split(')').let { (a, b) -&gt; b to a } }.toMap()
-
-    override fun firstTask(input: List&lt;String&gt;) = orbits(input).let { orbits -&gt;
-        orbits.values.map { planets(orbits, it).count() + 1 }.sum()
-    }
-
-    override fun secondTask(input: List&lt;String&gt;) =
-        orbits(input).let { orbits -&gt;
-            (planets(orbits, "YOU") to planets(orbits, "SAN"))
-                .let { (you, san) -&gt;
-                    you.count() + san.count() - 2 * you.intersect(san).count()
-                }
+        private fun orbits(input: List&lt;String&gt;) = input.map { it.split(')').let { (a, b) -&gt; b to a } }.toMap()
+    
+        override fun firstTask(input: List&lt;String&gt;) = orbits(input).let { orbits -&gt;
+            orbits.values.map { planets(orbits, it).count() + 1 }.sum()
         }
-
-    private tailrec fun planets(
-        orbits: Map&lt;String, String&gt;,
-        planet: String,
-        acc: List&lt;String&gt; = emptyList()
-    ): List&lt;String&gt; {
-        if (planet == "COM") return acc
-        val orbitsPlanet = orbits[planet] ?: error("No planet")
-        return planets(orbits, orbitsPlanet, listOf(orbitsPlanet) + acc)
+    
+        override fun secondTask(input: List&lt;String&gt;) =
+            orbits(input).let { orbits -&gt;
+                (planets(orbits, "YOU") to planets(orbits, "SAN"))
+                    .let { (you, san) -&gt;
+                        you.count() + san.count() - 2 * you.intersect(san).count()
+                    }
+            }
+    
+        private tailrec fun planets(
+            orbits: Map&lt;String, String&gt;,
+            planet: String,
+            acc: List&lt;String&gt; = emptyList()
+        ): List&lt;String&gt; {
+            if (planet == "COM") return acc
+            val orbitsPlanet = orbits[planet] ?: error("No planet")
+            return planets(orbits, orbitsPlanet, listOf(orbitsPlanet) + acc)
+        }
     }
-}
-
-
     
 
-class Advent6Test {
-    @Test
-    fun testWithValue() {
-        val advent = Advent6()
-        assertEquals(
-            42, advent.firstTask(
-                listOf(
-                    "COM)B",
-                    "B)C",
-                    "C)D",
-                    "D)E",
-                    "E)F",
-                    "B)G",
-                    "G)H",
-                    "D)I",
-                    "E)J",
-                    "J)K",
-                    "K)L"
+        
+    
+    class Advent6Test {
+        @Test
+        fun testWithValue() {
+            val advent = Advent6()
+            assertEquals(
+                42, advent.firstTask(
+                    listOf(
+                        "COM)B",
+                        "B)C",
+                        "C)D",
+                        "D)E",
+                        "E)F",
+                        "B)G",
+                        "G)H",
+                        "D)I",
+                        "E)J",
+                        "J)K",
+                        "K)L"
+                    )
                 )
             )
-        )
-    }
-
-    @Test
-    fun testWithValueSecondTask() {
-        val advent = Advent6()
-        assertEquals(
-            4, advent.secondTask(
-                listOf(
-                    "COM)B",
-                    "B)C",
-                    "C)D",
-                    "D)E",
-                    "E)F",
-                    "B)G",
-                    "G)H",
-                    "D)I",
-                    "E)J",
-                    "J)K",
-                    "K)L",
-                    "K)YOU",
-                    "I)SAN"
+        }
+    
+        @Test
+        fun testWithValueSecondTask() {
+            val advent = Advent6()
+            assertEquals(
+                4, advent.secondTask(
+                    listOf(
+                        "COM)B",
+                        "B)C",
+                        "C)D",
+                        "D)E",
+                        "E)F",
+                        "B)G",
+                        "G)H",
+                        "D)I",
+                        "E)J",
+                        "J)K",
+                        "K)L",
+                        "K)YOU",
+                        "I)SAN"
+                    )
                 )
             )
-        )
+        }
     }
-}
-
+    
 </code>
 <script src="https://unpkg.com/kotlin-playground@1" data-selector="code"></script>
 </body>
