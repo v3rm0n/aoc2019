@@ -1,0 +1,71 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Advent of Code 2019</title>
+    <meta name="description" content="Advent of Code 2019">
+    <meta name="author" content="Maido Käära">
+</head>
+<body>
+<code data-target-platform="junit">
+    import org.junit.Test
+    import kotlin.test.assertEquals
+
+    interface Advent {
+        fun firstTask(input: List&lt;String&gt;): Any
+        fun secondTask(input: List&lt;String&gt;): Any
+    }
+
+    
+
+class Advent9 : Advent {
+    override fun firstTask(input: List&lt;String&gt;): List&lt;Long&gt; {
+        val intcodes = input.flatMap { it.split(',').map(String::toLong) }
+        return Calculator(intcodes).calculate(listOf(1L))
+    }
+
+    override fun secondTask(input: List&lt;String&gt;): Any {
+        val intcodes = input.flatMap { it.split(',').map(String::toLong) }
+        return Calculator(intcodes).calculate(listOf(2L))
+    }
+}
+
+
+    
+
+class Advent9Test {
+
+    @Test
+    fun testWithValue() {
+        val advent = Advent9()
+        assertEquals(
+            listOf(109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99).map(Int::toLong).toList(),
+            advent.firstTask(listOf("109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99"))
+        )
+    }
+
+    @Test
+    fun testWithLargeValue() {
+        val advent = Advent9()
+        assertEquals(
+            listOf(1125899906842624L),
+            advent.firstTask(listOf("104,1125899906842624,99"))
+        )
+    }
+
+    @Test
+    fun testWithLargerValue() {
+        val advent = Advent9()
+        assertEquals(
+            listOf(1219070632396864L),
+            advent.firstTask(listOf("1102,34915192,34915192,7,4,7,99,0"))
+        )
+    }
+}
+
+</code>
+<script src="https://unpkg.com/kotlin-playground@1" data-selector="code"></script>
+</body>
+</html>

@@ -19,7 +19,7 @@
     }
 
     
-class Advent6() : Advent {
+class Advent6 : Advent {
 
     private fun orbits(input: List&lt;String&gt;) = input.map { it.split(')').let { (a, b) -&gt; b to a } }.toMap()
 

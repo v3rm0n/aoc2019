@@ -1,0 +1,73 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Advent of Code 2019</title>
+    <meta name="description" content="Advent of Code 2019">
+    <meta name="author" content="Maido Käära">
+</head>
+<body>
+<code data-target-platform="junit">
+    import org.junit.Test
+    import kotlin.test.assertEquals
+
+    interface Advent {
+        fun firstTask(input: List&lt;String&gt;): Any
+        fun secondTask(input: List&lt;String&gt;): Any
+    }
+
+    
+class Advent8(private val width: Int = 25, private val height: Int = 6) : Advent {
+    override fun firstTask(input: List&lt;String&gt;): Int {
+        val layers = layers(input.first().map { it.toString().toInt() })
+        val leastZeroes = layers.fold(listOf&lt;Int&gt;()) { acc, a -&gt;
+            when {
+                acc.isEmpty() -&gt; a
+                countZeroes(acc) &lt; countZeroes(a) -&gt; acc
+                else -&gt; a
+            }
+        }
+        return leastZeroes.count { it == 1 } * leastZeroes.count { it == 2 }
+    }
+
+    private fun countZeroes(list: List&lt;Int&gt;) = list.count { it == 0 }
+
+    private fun layers(input: List&lt;Int&gt;) = input.chunked(width * height)
+
+    override fun secondTask(input: List&lt;String&gt;): Any {
+        val layers = layers(input.first().map { it.toString().toInt() })
+        return layers.reduce(this::combine).chunked(width)
+    }
+
+    private fun combine(bottom: List&lt;Int&gt;, next: List&lt;Int&gt;): List&lt;Int&gt; {
+        return bottom.mapIndexed { index, bottomValue -&gt;
+            val nextValue = next[index]
+            if (bottomValue == 2) nextValue
+            else bottomValue
+        }
+    }
+}
+
+
+    
+
+class Advent8Test {
+    @Test
+    fun testWithValue() {
+        val advent = Advent8(3, 2)
+        assertEquals(1, advent.firstTask(listOf("123456789012")))
+    }
+
+    @Test
+    fun testWithSecondValue() {
+        val advent = Advent8(2, 2)
+        assertEquals(listOf(listOf(0, 1), listOf(1, 0)), advent.secondTask(listOf("0222112222120000")))
+    }
+}
+
+</code>
+<script src="https://unpkg.com/kotlin-playground@1" data-selector="code"></script>
+</body>
+</html>
