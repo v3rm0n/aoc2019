@@ -10,6 +10,7 @@ repositories {
 dependencies {
     implementation(platform(kotlin("bom")))
     implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
 }

@@ -1,6 +1,6 @@
 package advent
 
-class Advent6() : Advent {
+class Advent6 : Advent {
 
     private fun orbits(input: List<String>) = input.map { it.split(')').let { (a, b) -> b to a } }.toMap()
 
